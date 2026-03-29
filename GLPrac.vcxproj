@@ -133,12 +133,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\Coding files and stuff\src\glad.c" />
+    <ClCompile Include="glSetup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="glSetup.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Vector.h" />

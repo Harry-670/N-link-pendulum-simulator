@@ -7,39 +7,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Physics.h"
-
+#include "glSetup.h"
 
 int main() {
 
-	glfwInit();
+	float nodes{ 10 }, initAngle{ 1.0f }, ballRadius{ 0.1 }, screenX{ 800 }, screenY{ 800 }, length(0.5f);
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow* window {glfwCreateWindow(800, 800, "Dun dun", nullptr, nullptr)};
-
-	glfwMakeContextCurrent(window);
-
-	gladLoadGL();
-
-	glViewport(0, 0, 800, 800);
+	GLFWwindow* window{ glSetupWindow(screenX, screenY) };
 
 	//init ball 1
 	Particle ball{};
-	float nodes{10}, angle{ 1.0f }, radius{ 0.1 }, screenx{ 800 }, screeny{ 800 }, length(0.5f);
-
-	
 
 	ball.pivot = glm::vec3(0.0f, 0.5f, 0.0f);
 
 	ball.setNodes(nodes);
 
-	ball.setAngle(angle);
+	ball.setAngle(initAngle);
 
 	ball.setAngVel(0.1f);
 
-	ball.setRadius(radius);
+	ball.setRadius(ballRadius);
 
 	ball.setLength(length);
 
@@ -89,6 +76,9 @@ int main() {
 		
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, ball.getNodes() +2);
+		glDrawArrays(GL_LINES, ball.getNodes() + 2, 2);
+		// got to get it organized so I don't have to do this
+
 
 		if (glfwGetTime() - prevTime > 0.01f) {
 
