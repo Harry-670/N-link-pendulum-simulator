@@ -22,16 +22,17 @@ glm::vec3 const Particle::polarToCartVert() {
 
 // --- Utility ---
 
-float* Particle::initCircle() {
+unsigned int Particle::initCircle(float* &vertices ) {
     if (nodes < 3) {
         std::cerr << "Too few nodes to draw a circle" << std::endl;
     }
-    float* vertices = new float[2 * (nodes + 2)];
+    vertices = new float[2 * (nodes + 2)];
+    unsigned int size{};
 
     // Center of the circle is exactly at the origin (0, 0)
     vertices[0] = 0.0f;
     vertices[1] = 0.0f;
-
+    size++;
     float angle_offset = 0.0f;
     for (unsigned int i = 2; i < (nodes + 2) * 2; i += 2) {
         if (i >= (nodes + 1) * 2) {
@@ -44,6 +45,7 @@ float* Particle::initCircle() {
             vertices[i + 1] = radius * std::sin(angle_offset);
             angle_offset += 2.0f * M_PI / nodes;
         }
+        size++;
     }
-    return vertices;
+    return size;
 }

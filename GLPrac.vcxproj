@@ -71,8 +71,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\harry\source\repos\GLPrac\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\harry\source\repos\GLPrac\lib;C:\Coding files and stuff\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;C:\Users\harry\source\repos\GLPrac\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;C:\Users\harry\source\repos\GLPrac\lib;C:\Coding files and stuff\lib;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -85,6 +91,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;
+opengl32.lib;
+gdi32.lib;
+user32.lib;
+shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -113,7 +124,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;
+opengl32.lib;
+gdi32.lib;
+user32.lib;
+shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,17 +147,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Coding files and stuff\src\glad.c" />
     <ClCompile Include="glSetup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="physics.cpp" />
-    <ClCompile Include="Shaders.cpp" />
+    <ClCompile Include="src\glad.c" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glSetup.h" />
     <ClInclude Include="Physics.h" />
-    <ClInclude Include="Shaders.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>

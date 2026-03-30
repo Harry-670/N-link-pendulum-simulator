@@ -33,7 +33,7 @@ public:
 
     // Physics Logic
     void newStep(float timeStep);
-    float* initCircle();
+    unsigned int initCircle(float*& vertices);
     glm::vec3 const polarToCartVert();
 
     // --- Setters ---

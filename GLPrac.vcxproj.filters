@@ -21,12 +21,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\Coding files and stuff\src\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shaders.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="physics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,15 +30,15 @@
     <ClCompile Include="glSetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Physics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="glSetup.h">
