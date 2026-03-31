@@ -1,7 +1,9 @@
 #include "glSetup.h"
+#include "Shaders.h"
+#include <iostream>
+#include <glad/glad.h>
 
-
-GLFWwindow* glSetupWindow(GLuint windowX, GLuint windowY) {
+GLFWwindow* DataStore::glSetupWindow(GLuint windowX, GLuint windowY) {
 	glfwInit();
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -16,12 +18,12 @@ GLFWwindow* glSetupWindow(GLuint windowX, GLuint windowY) {
 
 	glViewport(0, 0, 800, 800);
 
+	this->window = window;
+
 	return window;
 }
 
-#include "Shaders.h"
-#include <iostream>
-#include <glad/glad.h>
+
 
 std::string readFile(const char* file) {
 
@@ -82,4 +84,68 @@ unsigned int initShaders() {
 	glDeleteShader(fragmentShader);
 	glDeleteShader(vertexShader);
 	return shaderProgram;
+}
+
+
+
+unsigned int DataStore::addShape(float*& shape, unsigned int size) {
+
+	BOArrays[index] = new float[size * 2];
+
+	for (unsigned int i{}; i < size * 2; i++) {
+
+		BOArrays[index][i] = shape[i];
+
+	}
+
+	glBindVertexArray(VAO[index]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[index]);
+	glBufferData(GL_ARRAY_BUFFER, 8 * size, BOArrays[index], GL_DYNAMIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(GLfloat) * 2, (void*)0);
+	glEnableVertexAttribArray(0);
+
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+	delete[] shape;
+
+	shape = nullptr;
+
+	index++;
+
+	return index - 1;
+}
+
+void DataStore::sendToGPU(unsigned int n) {
+
+	VBO = new GLuint[n];
+	VAO = new GLuint[n];
+	BOArrays = new float* [n];
+
+	glGenBuffers(n, VBO);
+
+	glGenVertexArrays(n, VAO);
+}
+
+
+void DataStore::glClean() {
+
+	for (int i{}; i < n; i++) {
+
+		delete[] BOArrays[i];
+
+	}
+
+	delete[] BOArrays;
+	delete[] VBO;
+	delete[] VAO;
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+
 }

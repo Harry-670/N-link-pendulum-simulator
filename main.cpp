@@ -15,13 +15,20 @@ int main() {
 
 	float nodes{ 10 }, initAngle{ 1.0f }, ballRadius{ 0.1 }, screenX{ 800 }, screenY{ 800 }, length(0.5f);
 
-	GLFWwindow* window{ glSetupWindow(screenX, screenY) };
-
 	//init ball 1
 	Particle ball{};
 	DataStore data{};
 
-	ball.pivot = glm::vec3(0.0f, 0.5f, 0.0f);
+	GLFWwindow* window{ data.glSetupWindow(screenX, screenY) };
+
+	data.sendToGPU(2);
+
+	GLuint* VBO, *VAO;
+
+	VBO = data.getVBO();
+	VAO = data.getVAO();
+
+	ball.pivot = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	ball.setNodes(nodes);
 
@@ -36,14 +43,13 @@ int main() {
 
 	ball.pos = ball.polarToCartVert();
 
-	float* circle{};
-	unsigned int size{ ball.initCircle(circle) };
-
-	unsigned int firstCircle{ data.addShape(circle, size) };
-
-	GLuint VBO, VAO;
+	float *circle{}, *line{ new float [4]{ball.pivot.x,ball.pivot.y,ball.pos.x,ball.pos.y} };
 	
-	data.sendToGPU(VBO, VAO);
+	unsigned int sizeC{ ball.initCircle(circle) }, sizeL{2};
+
+	unsigned int firstCircle{ data.addShape(circle, sizeC) };
+	unsigned int firstLine{ data.addShape(line, sizeL) };
+
 
 	GLuint shaderProgram{ initShaders() };
 
@@ -54,33 +60,40 @@ int main() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	GLfloat prevTime{};
-	glm::mat4 translate{ 1.0f };
+	glm::mat4 Ctran{ 1.0f }, Ltran{ 1.0f };
 	
-	translate = glm::translate(translate, ball.pos);
+	Ctran = glm::translate(Ctran, ball.pos);
 	int translation{ glGetUniformLocation(shaderProgram, "translate") };
-	glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(translate));
+	glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ctran));
 
 	while (!glfwWindowShouldClose(window)) {
 
+		// Inside your while loop
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLE_FAN, firstCircle, size);
-		glDrawArrays(GL_LINES, ball.getNodes() + 2, 2);
-		// got to get it organized so I don't have to do this
+		translation = glGetUniformLocation(shaderProgram, "translate");
+
+		// 1. Draw the Ball (Use the 'translate' matrix)
+		glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ctran));
+		glBindVertexArray(VAO[firstCircle]);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, sizeC);
+
+		// 2. Draw the Line (Use an Identity matrix so it stays anchored)
+		
+		glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ltran));
+		glBindVertexArray(VAO[firstLine]);
+		glDrawArrays(GL_LINES, 0, sizeL);
 
 
 		if (glfwGetTime() - prevTime > 0.01f) {
 
-			//same here
 			ball.posPrev = ball.pos;
+			ball.angPrev = ball.angle;
 			ball.newStep(0.01f) ;
 			
 			//setup the correct getters and setters for physics.cpp
-			translate = glm::translate(translate, ball.pos - ball.posPrev);
-			translation = glGetUniformLocation(shaderProgram, "translate");
-			glUniformMatrix4fv( translation, 1, GL_FALSE, glm::value_ptr(translate));
+			Ctran = glm::translate(Ctran, ball.pos - ball.posPrev);
+			Ltran = glm::rotate(Ltran, ball.angle-ball.angPrev, glm::vec3(0.0, 0.0, 1.0));
 			prevTime = glfwGetTime();
 
 		}
@@ -90,7 +103,8 @@ int main() {
 		glBindVertexArray(0);
 
 	}
-	glfwDestroyWindow(window);
-	glfwTerminate();
+
+	data.glClean();
+	
 	return 0;
 }

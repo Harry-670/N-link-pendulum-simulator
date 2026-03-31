@@ -17,6 +17,7 @@ public:
     float angle, radius, length,angVel, angAcc;
     float red, green, blue;
     unsigned int nodes;
+    float angPrev;
 
     // Constructors
     Particle(glm::vec3 pos, glm::vec3 posPrev, glm::vec3 vel, glm::vec3 acc, glm::vec3 pivot,
