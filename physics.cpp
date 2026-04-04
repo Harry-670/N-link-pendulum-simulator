@@ -4,12 +4,48 @@
 
 #define M_PI 3.14159265f
 
-void Particle::newStep(float timeStep) {
-    angAcc = -grav * std::sin(angle) / length;
-    angVel += angAcc * timeStep;
-    angle += angVel * timeStep;
-    pos = polarToCartVert();
+
+void Simulation::RK4Step(unsigned int index) {
+    float dt = timeStep;
+
+    // Grab the current actual state
+    float currentAngle = pendNum[index].getAngle();
+    float currentVel = pendNum[index].getAngVel();
+
+    // --- k1: Current state derivatives ---
+    float k1_vel = currentVel;
+    float k1_acc = pendNum[index].calcAngAcc(currentVel, currentAngle);
+
+    // --- k2: Step halfway into the future using k1 ---
+    float k2_angle_temp = currentAngle + (0.5f * dt * k1_vel);
+    float k2_vel_temp = currentVel + (0.5f * dt * k1_acc);
+    float k2_vel = k2_vel_temp;
+    float k2_acc = pendNum[index].calcAngAcc(k2_vel_temp, k2_angle_temp);
+
+    // --- k3: Step halfway into the future using k2 ---
+    float k3_angle_temp = currentAngle + (0.5f * dt * k2_vel);
+    float k3_vel_temp = currentVel + (0.5f * dt * k2_acc);
+    float k3_vel = k3_vel_temp;
+    float k3_acc = pendNum[index].calcAngAcc(k3_vel_temp, k3_angle_temp);
+
+    // --- k4: Step a FULL timestep into the future using k3 ---
+    float k4_angle_temp = currentAngle + (dt * k3_vel);
+    float k4_vel_temp = currentVel + (dt * k3_acc);
+    float k4_vel = k4_vel_temp;
+    float k4_acc = pendNum[index].calcAngAcc(k4_vel_temp, k4_angle_temp);
+
+    // --- Final Update: Weighted average for BOTH position and velocity ---
+    float deltaAngle = (dt / 6.0f) * (k1_vel + 2.0f * k2_vel + 2.0f * k3_vel + k4_vel);
+    float deltaVel = (dt / 6.0f) * (k1_acc + 2.0f * k2_acc + 2.0f * k3_acc + k4_acc);
+
+    // Apply the changes
+    pendNum[index].setAngle(currentAngle + deltaAngle);
+    pendNum[index].setAngVel(currentVel + deltaVel);
+
+    // Update visuals
+    pendNum[index].pos = pendNum[index].polarToCartVert();
 }
+
 
 
 
@@ -19,7 +55,25 @@ glm::vec3 const Particle::polarToCartVert() {
 
 
 }
+Eigen::VectorXd Simulation::calcAngAcc(float angVel, float angle) {
 
+    Eigen::MatrixXd M(numPend,numPend);
+    Eigen::VectorXd B(numPend);
+
+    for (int i{}; i < numPend; i++) {
+        B(i) = -grav * (numPend - i + 1) * std::sin(pendNum[i].getAngVel());
+        for (int j{}; j < numPend; j++ ) {
+
+            M(i, j) = (numPend - std::max(i, j) + 1) * std::cos(pendNum[i].getAngVel() - pendNum[j].getAngVel());
+            B(i) -= (numPend - std::max(i, j) + 1)* std::pow(pendNum[j].getAngVel(),2)* std::sin(pendNum[i].getAngVel() - pendNum[j].getAngVel());
+
+        }
+
+    }
+
+    return M.lu().solve(B);
+
+}
 // --- Utility ---
 
 unsigned int Particle::initCircle(float* &vertices ) {

@@ -1,12 +1,28 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
+#endif // PHYSICS_H
 
 #include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <eigen-5.0.0/Eigen/dense>
+#include <algorithm>
 
 #define grav 1.0f
+
+
+class Simulation {
+private:
+    Particle* pendNum;
+    float timeStep;
+    unsigned int numPend;
+public:
+
+    void RK4Step(unsigned int index);
+    Eigen::VectorXd calcAngAcc(float angVel, float angle);
+
+};
 
 class Particle {
 private:
@@ -14,27 +30,30 @@ private:
 public:
 
     glm::vec3 pos, posPrev, vel, acc, pivot;
-    float angle, radius, length,angVel, angAcc;
+        float radius, length, angle, angPrev, angVel, angAcc;
     float red, green, blue;
     unsigned int nodes;
-    float angPrev;
+
 
     // Constructors
     Particle(glm::vec3 pos, glm::vec3 posPrev, glm::vec3 vel, glm::vec3 acc, glm::vec3 pivot,
         float angle, float radius, float length, float angVel, float angAcc,
-        float red, float green, float blue, unsigned int nodes)
+        float red, float green, float blue, unsigned int nodes, float angPrev)
         : pos(pos), posPrev(posPrev), vel(vel), acc(acc), pivot(pivot),
         angle(angle), radius(radius), length(length), angVel(angVel), angAcc(angAcc),
-        red(red), green(green), blue(blue), nodes(nodes) {
+        red(red), green(green), blue(blue), nodes(nodes), angPrev(angPrev) {
     };
 
     Particle() : Particle(glm::vec3(), glm::vec3(), glm::vec3(), glm::vec3(), glm::vec3(),
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0) {
+        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0.0f) {
     };
 
     // Physics Logic
-    void newStep(float timeStep);
+
+
+
     unsigned int initCircle(float*& vertices);
+
     glm::vec3 const polarToCartVert();
 
     // --- Setters ---
@@ -66,4 +85,3 @@ public:
 
 };
 
-#endif // PHYSICS_H

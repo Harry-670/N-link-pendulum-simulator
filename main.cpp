@@ -21,7 +21,7 @@ int main() {
 
 	GLFWwindow* window{ data.glSetupWindow(screenX, screenY) };
 
-	data.sendToGPU(2);
+	data.genShapes(2);
 
 	GLuint* VBO, *VAO;
 

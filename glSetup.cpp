@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 
 GLFWwindow* DataStore::glSetupWindow(GLuint windowX, GLuint windowY) {
+
 	glfwInit();
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -21,6 +22,7 @@ GLFWwindow* DataStore::glSetupWindow(GLuint windowX, GLuint windowY) {
 	this->window = window;
 
 	return window;
+
 }
 
 
@@ -118,9 +120,10 @@ unsigned int DataStore::addShape(float*& shape, unsigned int size) {
 	index++;
 
 	return index - 1;
+
 }
 
-void DataStore::sendToGPU(unsigned int n) {
+void DataStore::genShapes(unsigned int n) {
 
 	VBO = new GLuint[n];
 	VAO = new GLuint[n];
@@ -129,6 +132,7 @@ void DataStore::sendToGPU(unsigned int n) {
 	glGenBuffers(n, VBO);
 
 	glGenVertexArrays(n, VAO);
+
 }
 
 

@@ -5,10 +5,12 @@
 #include <sstream>
 #include <vector>
 
+//reads the shader files
 std::string readFile(const char* file);
 
-unsigned int initShaders();
 //setup the window and viewport as well as initialize the version of OpenGL
+unsigned int initShaders();
+
 
 
 class DataStore {
@@ -22,18 +24,23 @@ private:
 
 public:
 
-	GLFWwindow* glSetupWindow(GLuint windowX, GLuint windowY);
-
-	DataStore():index(0),VAO(nullptr),VBO(nullptr) {}
+	DataStore() :BOArrays{}, index{}, n{}, VAO{}, VBO{},window{} {}
 
 	void setBO(GLuint*& VBO, GLuint*& VAO);
 
 	GLuint *getVBO() {return VBO;}
 
 	GLuint *getVAO() {return VAO;}
-	void sendToGPU(unsigned int n);
-		
+
+	//sets up the window, defines the dimensions of the widow and then returns the pointer to that object
+	GLFWwindow* glSetupWindow(GLuint windowX, GLuint windowY);
+
+	//generates the VAO and the VBOs for each shape
+	void genShapes(unsigned int n);
+	
+	//cleans up memory, deletes, VAOs, VBOs, BOArrays, destroys window, and terminates GLFW
 	void glClean();
 
+	//adds the added shape to the corresponing VBO and VAO, then it returns the index that it is stored in BOArrays
 	unsigned int addShape(float*& shape, unsigned int size);
 };
