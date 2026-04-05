@@ -74,12 +74,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\harry\source\repos\GLPrac\Libraries\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;C:\Users\harry\source\repos\GLPrac\Libraries\lib for laptop;$(LibraryPath)</LibraryPath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
-    <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ExternalIncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <eigen-5.0.0/Eigen/dense>
 #include <algorithm>
+#include "glSetup.h"
 
 #define grav 1.0f
 
@@ -19,6 +20,7 @@ private:
     unsigned int numPend;
 public:
 
+    void setUpPend(unsigned int n, float* initAng, float* initAngVel);
     void RK4Step(unsigned int index);
     Eigen::VectorXd calcAngAcc();
 
@@ -30,7 +32,7 @@ private:
 public:
 
     glm::vec3 pos, posPrev, vel, acc, pivot;
-        float radius, length, angle, angPrev, angVel, angAcc;
+        float radius, length, angle, angPrev, angVel, angAcc, delAng, delAngVel;
     float red, green, blue;
     unsigned int nodes;
 

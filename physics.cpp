@@ -4,21 +4,28 @@
 
 #define M_PI 3.14159265f
 
+void Simulation::setUpPend(unsigned int n, float* pivot, float* initAng, float* initAngVel) {
+
+    DataStore Data{};
+    Data.genShapes(n);
+    
+    float* tempPivot{ new float[2] {pivot[0], pivot[1]} };
+
+    Data.addShape(tempPivot, unsigned int size)
+
+}
 
 void Simulation::RK4Step(unsigned int index) {
     float dt = timeStep;
 
-    // Grab the current actual state
-    float currentAngle = pendNum[index].getAngle();
-    float currentVel = pendNum[index].getAngVel();
     float** KVel { new float* [4] }, ** KAcc{ new float* [4] };
 
-    float *origAng{new float [numPend]}, * origVel{ new float[numPend] };
+    float *origAng{new float [numPend]}, * origAngVel{ new float[numPend] };
 
 	//fill original arrays with current state
     for (int i{}; i < numPend; i++) {
         origAng[i] = pendNum[i].getAngle();
-        origVel[i] = pendNum[i].getAngVel();
+        origAngVel[i] = pendNum[i].getAngVel();
 	}
 
     for (int i{} ; i < 4 ; i++){ 
@@ -33,43 +40,66 @@ void Simulation::RK4Step(unsigned int index) {
 
     for (int i{}; i < numPend; i++) {
 
-        KVel[0][i] = currentVel;
+        KVel[0][i] = origAngVel[i];
         KAcc[0][i] = A(i);
+        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[0][i]));
+        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[0][i]));
 
     }
     
-	//update angle and angular velocity to the temporary values for the next step
-	for (int i{}; i < numPend; i++){
-	pendNum[i].setAngle(currentAngle + (0.5f * dt * KVel[0][i]));
-    {
-    // --- k2: Step halfway into the future using k1 ---
-    float k2_angle_temp = currentAngle + (0.5f * dt * k1_vel);
-    float k2_vel_temp = currentVel + (0.5f * dt * k1_acc);
-    float k2_vel = k2_vel_temp;
-    float k2_acc = pendNum[index].calcAngAcc(k2_vel_temp, k2_angle_temp);
+    A = calcAngAcc();
 
-    // --- k3: Step halfway into the future using k2 ---
-    float k3_angle_temp = currentAngle + (0.5f * dt * k2_vel);
-    float k3_vel_temp = currentVel + (0.5f * dt * k2_acc);
-    float k3_vel = k3_vel_temp;
-    float k3_acc = pendNum[index].calcAngAcc(k3_vel_temp, k3_angle_temp);
+	
+    for (int i{}; i < numPend; i++) {
 
-    // --- k4: Step a FULL timestep into the future using k3 ---
-    float k4_angle_temp = currentAngle + (dt * k3_vel);
-    float k4_vel_temp = currentVel + (dt * k3_acc);
-    float k4_vel = k4_vel_temp;
-    float k4_acc = pendNum[index].calcAngAcc(k4_vel_temp, k4_angle_temp);
+        KVel[1][i] = pendNum[i].getAngVel();
+        KAcc[1][i] = A(i);
+        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[1][i]));
+        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[1][i]));
+
+    }
+
+    A = calcAngAcc();
+
+    for (int i{}; i < numPend; i++) {
+
+        KVel[2][i] = pendNum[i].getAngVel();
+        KAcc[2][i] = A(i);
+        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[2][i]));
+        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[2][i]));
+
+    }
+
+    A = calcAngAcc();
+
+    for (int i{}; i < numPend; i++) {
+
+        KVel[3][i] = pendNum[i].getAngVel();
+        KAcc[3][i] = A(i);
+
+    }
+
+    //fill the orginals back up and fill prev ang
+        // --- Final Update: Weighted average for BOTH position and velocity ---
+    for (int i{}; i < numPend; i++) {
+
+        pendNum[i].setAngle(origAng[i]+ (dt / 6.0f) * (KVel[0][i] + 2.0f * KVel[1][i] + 2.0f * KVel[2][i] + KVel[3][i]));
+        pendNum[i].setAngVel(origAngVel[i] + (dt / 6.0f) * (KAcc[0][i] + 2.0f * KAcc[1][i] + 2.0f * KAcc[2][i] + KAcc[3][i]));
+        pendNum[i].prevAng(origAng[i]);
+    }
 
     // --- Final Update: Weighted average for BOTH position and velocity ---
-    float deltaAngle = (dt / 6.0f) * (k1_vel + 2.0f * k2_vel + 2.0f * k3_vel + k4_vel);
-    float deltaVel = (dt / 6.0f) * (k1_acc + 2.0f * k2_acc + 2.0f * k3_acc + k4_acc);
 
-    // Apply the changes
-    pendNum[index].setAngle(currentAngle + deltaAngle);
-    pendNum[index].setAngVel(currentVel + deltaVel);
 
     // Update visuals
-    pendNum[index].pos = pendNum[index].polarToCartVert();
+    for (unsigned int i{}; i < numPend; i++) {
+
+    pendNum[i].setPrevPos() = pendNum[i].getPos();
+    pendNum[i].setPos() = pendNum[i].polarToCartVert();
+    
+
+    }
+
 }
 
 
