@@ -20,7 +20,7 @@ private:
 public:
 
     void RK4Step(unsigned int index);
-    Eigen::VectorXd calcAngAcc(float angVel, float angle);
+    Eigen::VectorXd calcAngAcc();
 
 };
 

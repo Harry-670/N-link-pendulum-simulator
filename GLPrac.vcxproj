@@ -72,8 +72,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\include;C:\Users\harry\source\repos\GLPrac\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;C:\Users\harry\source\repos\GLPrac\lib;C:\Coding files and stuff\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\harry\source\repos\GLPrac\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\harry\source\repos\N---pendulum-simulator\Libraries\lib for desktop;C:\Users\harry\source\repos\GLPrac\Libraries\lib for laptop;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

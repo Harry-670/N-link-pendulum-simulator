@@ -11,11 +11,37 @@ void Simulation::RK4Step(unsigned int index) {
     // Grab the current actual state
     float currentAngle = pendNum[index].getAngle();
     float currentVel = pendNum[index].getAngVel();
+    float** KVel { new float* [4] }, ** KAcc{ new float* [4] };
 
-    // --- k1: Current state derivatives ---
-    float k1_vel = currentVel;
-    float k1_acc = pendNum[index].calcAngAcc(currentVel, currentAngle);
+    float *origAng{new float [numPend]}, * origVel{ new float[numPend] };
 
+	//fill original arrays with current state
+    for (int i{}; i < numPend; i++) {
+        origAng[i] = pendNum[i].getAngle();
+        origVel[i] = pendNum[i].getAngVel();
+	}
+
+    for (int i{} ; i < 4 ; i++){ 
+
+		KVel[i] = new float[numPend] {};
+		KAcc[i] = new float[numPend] {};
+
+
+}
+
+    Eigen::VectorXd A{ calcAngAcc() };
+
+    for (int i{}; i < numPend; i++) {
+
+        KVel[0][i] = currentVel;
+        KAcc[0][i] = A(i);
+
+    }
+    
+	//update angle and angular velocity to the temporary values for the next step
+	for (int i{}; i < numPend; i++){
+	pendNum[i].setAngle(currentAngle + (0.5f * dt * KVel[0][i]));
+    {
     // --- k2: Step halfway into the future using k1 ---
     float k2_angle_temp = currentAngle + (0.5f * dt * k1_vel);
     float k2_vel_temp = currentVel + (0.5f * dt * k1_acc);
@@ -55,7 +81,7 @@ glm::vec3 const Particle::polarToCartVert() {
 
 
 }
-Eigen::VectorXd Simulation::calcAngAcc(float angVel, float angle) {
+Eigen::VectorXd Simulation::calcAngAcc() {
 
     Eigen::MatrixXd M(numPend,numPend);
     Eigen::VectorXd B(numPend);
