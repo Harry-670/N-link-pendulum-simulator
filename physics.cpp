@@ -4,14 +4,36 @@
 
 #define M_PI 3.14159265f
 
-void Simulation::setUpPend(unsigned int n, float* pivot, float* initAng, float* initAngVel) {
-
+void Simulation::setUpPend(unsigned int n, float* pivot, float length, float* initAng, float* initAngVel, unsigned int* nodes) {
+    //fix pls
     DataStore Data{};
-    Data.genShapes(n);
-    
-    float* tempPivot{ new float[2] {pivot[0], pivot[1]} };
+    pendNum = new Particle[n]{};
 
-    Data.addShape(tempPivot, unsigned int size)
+    Data.genShapes(n);
+ 
+    float prevPivot[2]{};
+
+    for (unsigned int i{1}; i < n; i++) {
+
+        float* vertices;
+
+        pendNum[i].setAngVel(initAngVel[i]);
+        pendNum[i].setAngle(initAng[i]);
+        pendNum[i].setNodes(nodes[i]);
+
+        if(i>0)
+        pendNum[i].setPivot(prevPivot + pendNum[i].polarToCaretsianVert());
+        else
+            pendNum[i].setPivot(pivot[0], pivot[1]);
+
+        prevPivot = pendNum[i].getPivot();
+        pendNum[i].initCircle(vertices);
+        Data.addShape(vertices, (nodes[i] + 1) * 2);
+        delete[] vertices;
+
+    }
+
+    
 
 }
 

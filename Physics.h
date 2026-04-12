@@ -15,6 +15,7 @@
 
 class Simulation {
 private:
+    DataStore Data;
     Particle* pendNum;
     float timeStep;
     unsigned int numPend;

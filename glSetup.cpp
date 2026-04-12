@@ -90,7 +90,7 @@ unsigned int initShaders() {
 
 
 
-unsigned int DataStore::addShape(float*& shape, unsigned int size) {
+unsigned int DataStore::addShape(float* &shape, unsigned int size) {
 
 	BOArrays[index] = new float[size * 2];
 
