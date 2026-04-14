@@ -35,8 +35,8 @@ DataStore Simulation::setUpPend(unsigned int n, glm::vec3 pivot, float* length, 
 		// Next particle will pivot about this particle's position
 		prevPos = pendNum[i].getPos();
 		pendNum[i].initCircle(vertices);
-		Data.addShape(vertices, (nodes[i] + 1) * 2);
-		delete[] vertices;
+		Data.addShape(vertices, nodes[i] + 2);
+
 	}
 
 	return Data;
