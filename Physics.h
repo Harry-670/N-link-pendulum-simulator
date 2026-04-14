@@ -30,7 +30,7 @@ public:
     void setTimeStep(float newTimeStep) { timeStep = newTimeStep; }
     void setNumPend(unsigned int newNumPend) { numPend = newNumPend; }
 
-    DataStore setUpPend(unsigned int n, float* pivot, float* length, float* initAng, float* initAngVel, unsigned int* nodes);
+    DataStore setUpPend(unsigned int n, glm::vec3 pivot, float* length, float* initAng, float* initAngVel, unsigned int* nodes);
     void RK4Step();
     Eigen::VectorXd calcAngAcc();
 };
@@ -108,7 +108,7 @@ public:
     float getRad() const { return radius; }
     float getLength() const { return length; }
     unsigned int getNodes() const { return nodes; }
-    unsigned int getCircleVertices() const { return nodes + 1; }
+    unsigned int getCircleVertices() const { return nodes + 2; }
     unsigned int getLineVertices() const { return 2; }
     float getRed() const { return red; }
     float getGreen() const { return green; }

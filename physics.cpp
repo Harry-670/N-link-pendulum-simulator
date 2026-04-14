@@ -5,7 +5,7 @@
 #define M_PI 3.14159265f
 
 // Simulation setup
-DataStore Simulation::setUpPend(unsigned int n, float* pivot, float* length, float* initAng, float* initAngVel, unsigned int* nodes) {
+DataStore Simulation::setUpPend(unsigned int n, glm::vec3 pivot, float* length, float* initAng, float* initAngVel, unsigned int* nodes) {
 
 	GLfloat screenX{ 800 }, screenY{ 800 };
 	DataStore Data{};
@@ -15,7 +15,8 @@ DataStore Simulation::setUpPend(unsigned int n, float* pivot, float* length, flo
 	numPend = n;
 	Data.genShapes(n);
 
-	glm::vec3 prevPivot{};
+    // Track the previous particle's position (start at the anchor pivot)
+	glm::vec3 prevPos = pivot;
 	for (unsigned int i{}; i < n; i++) {
 		float* vertices;
 
@@ -25,12 +26,14 @@ DataStore Simulation::setUpPend(unsigned int n, float* pivot, float* length, flo
 		pendNum[i].setLength(length[i]);
 		pendNum[i].setRadius(0.1f);
 
-		if (i > 0)
-			pendNum[i].setPivot(prevPivot + pendNum[i].polarToCartVert());
-		else
-			pendNum[i].setPivot(pivot[0], pivot[1]);
+        // Set this particle's pivot to the previous particle's absolute position
+		pendNum[i].setPivot(prevPos);
 
-		prevPivot = pendNum[i].getPivot();
+		// Compute absolute position from pivot + polar offset
+		pendNum[i].setPos(pendNum[i].polarToCartVert());
+
+		// Next particle will pivot about this particle's position
+		prevPos = pendNum[i].getPos();
 		pendNum[i].initCircle(vertices);
 		Data.addShape(vertices, (nodes[i] + 1) * 2);
 		delete[] vertices;
@@ -100,8 +103,12 @@ void Simulation::RK4Step() {
 
 	// Update positions
 	for (unsigned int i{}; i < numPend; i++) {
+
 		pendNum[i].setPrevPos(pendNum[i].getPos());
 		pendNum[i].setPos(pendNum[i].polarToCartVert());
+
+		if (i)
+			pendNum[i].setPivot(pendNum[i - 1].getPos());
 	}
 
 	// Cleanup
@@ -120,15 +127,28 @@ Eigen::VectorXd Simulation::calcAngAcc() {
 	Eigen::MatrixXd M(numPend, numPend);
 	Eigen::VectorXd B(numPend);
 
-	for (unsigned int i{}; i < numPend; i++) {
-		B(i) = -grav * static_cast<float>(numPend - i + 1) * std::sin(pendNum[i].getAngVel());
-		for (unsigned int j{}; j < numPend; j++) {
-			M(i, j) = static_cast<float>(numPend - std::max(i, j) + 1) * std::cos(pendNum[i].getAngVel() - pendNum[j].getAngVel());
-			B(i) -= static_cast<float>(numPend - std::max(i, j) + 1) * std::pow(pendNum[j].getAngVel(), 2.0f) * std::sin(pendNum[i].getAngVel() - pendNum[j].getAngVel());
+	for (unsigned int i = 0; i < numPend; i++) {
+		// Correctly parenthesized gravity term using 0-based indexing
+		B(i) = -grav * (numPend - i) * std::sin(pendNum[i].getAngle());
+
+		for (unsigned int j = 0; j < numPend; j++) {
+			// The effective mass term shared by M and the Coriolis/Centrifugal force
+			double massFactor = numPend - std::max(i, j);
+
+			// Difference in angles
+			double deltaTheta = pendNum[i].getAngle() - pendNum[j].getAngle();
+
+			// Mass matrix M(i, j)
+			M(i, j) = massFactor * std::cos(deltaTheta);
+
+			// Coriolis / Centrifugal forces
+			B(i) -= massFactor * std::pow(pendNum[j].getAngVel(), 2.0) * std::sin(deltaTheta);
 		}
 	}
 
-	return M.lu().solve(B);
+	// Use LLT (Cholesky decomposition) because the Mass matrix is symmetric positive-definite.
+	// This is faster and more stable than LU decomposition for N-pendulums.
+	return M.llt().solve(B);
 }
 
 // Particle geometry
@@ -143,14 +163,14 @@ unsigned int Particle::initCircle(float*& vertices) {
 	vertices = new float[2 * (nodes + 2)];
 
 	// Center vertex
-	vertices[0] = 0.0f;
-	vertices[1] = 0.0f;
+	vertices[0] = getPos().x;
+	vertices[1] = getPos().y;
 
 	// Circle perimeter vertices
 	float angle_offset = 0.0f;
 	for (unsigned int i = 0; i <= nodes; i++) {
-		vertices[2 * (i + 1)] = radius * std::cos(angle_offset);
-		vertices[2 * (i + 1) + 1] = radius * std::sin(angle_offset);
+		vertices[2 * (i + 1)] = getPos().x + radius * std::cos(angle_offset);
+		vertices[2 * (i + 1) + 1] = getPos().y + radius * std::sin(angle_offset);
 		angle_offset += 2.0f * M_PI / static_cast<float>(nodes);
 	}
 

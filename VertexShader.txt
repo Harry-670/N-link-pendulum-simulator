@@ -1,8 +1,7 @@
 #version 330 core
 layout (location = 0) in vec2 pos;
 uniform mat4 translate;
-uniform float scale;
 
 void main() {
-    gl_Position = translate * vec4(pos * scale, 0.0f, 1.0f);
+    gl_Position = translate * vec4(pos, 0.0f, 1.0f);
 }

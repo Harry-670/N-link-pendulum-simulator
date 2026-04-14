@@ -10,13 +10,15 @@
 #include "glSetup.h"
 
 int main() {
-	Simulation Sim{};
+    Simulation Sim{};
+	// Set simulation timestep (seconds)
+	Sim.setTimeStep(0.01f);
 
 	//number of pendulums
 	unsigned int n{ 2 };
 
 	//pivot array
-	float* pivot{ new float[2] {0.0f, 0.0f} };
+	glm::vec3 pivot{ glm::vec3(0.0f,1.0f,0.0f)};
 
 	//length array
 	float* length{ new float[2] {0.5f, 0.4f} };
@@ -36,13 +38,7 @@ int main() {
 	//initialize the shaders and get the shader program (AFTER window creation!)
 	GLuint shaderProgram{ initShaders() };
 
-	//set the scale uniform
-	GLint scaleUni{ glGetUniformLocation(shaderProgram, "scale") };
-	glUseProgram(shaderProgram);
-	glUniform1f(scaleUni, 2.0f);
-
 	//delete the arrays that were used to set up the pendulum
-	delete[] pivot;
 	delete[] length;
 	delete[] initAng;
 	delete[] initAngVel;
@@ -59,12 +55,7 @@ int main() {
 	glm::mat4* Ctran{ new glm::mat4[n]{1.0f} }, *Ltran{ new glm::mat4[n]{1.0f} };
 	int translation;
 
-	for (unsigned int i{}; i < n; i++) {
-		Ctran[i] = glm::translate(Ctran[i], Sim.getPendNum()[i].getPos());
-		translation = glGetUniformLocation(shaderProgram, "translate");
-		glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ctran[i]));
-	}
-
+	
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glUseProgram(shaderProgram);
@@ -77,7 +68,7 @@ int main() {
 			glBindVertexArray(VAO[i]);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, Sim.getPendNum()[i].getCircleVertices());
 
-			// Draw the Line (Use an Identity matrix so it stays anchored)
+
 			glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ltran[i]));
 			glBindVertexArray(VAO[i]);
 			glDrawArrays(GL_LINES, 0, Sim.getPendNum()[i].getLineVertices());
