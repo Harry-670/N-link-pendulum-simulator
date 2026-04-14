@@ -13,22 +13,22 @@ int main() {
 	Simulation Sim{};
 
 	//number of pendulums
-	unsigned int n{ 1 };
+	unsigned int n{ 2 };
 
 	//pivot array
 	float* pivot{ new float[2] {0.0f, 0.0f} };
 
 	//length array
-	float* length{ new float[1] {0.5f} };
+	float* length{ new float[2] {0.5f, 0.4f} };
 
-	//inital angle array
-	float* initAng{ new float[1] {1.0f} };
+	//initial angle array
+	float* initAng{ new float[2] {1.0f, 0.5f} };
 
 	//initial angular velocity array
-	float* initAngVel{ new float[1] {0.1f} };
-	
+	float* initAngVel{ new float[2] {0.1f, 0.0f} };
+
 	//nodes array
-	unsigned int* nodes{ new unsigned int[1] {10} };
+	unsigned int* nodes{ new unsigned int[2] {10, 10} };
 
 	//setup the pendulum, by adding the initial states
 	DataStore data{ Sim.setUpPend(n, pivot, length, initAng, initAngVel, nodes) };

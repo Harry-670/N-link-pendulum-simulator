@@ -4,6 +4,5 @@ uniform mat4 translate;
 uniform float scale;
 
 void main() {
-    vec4 worldPos = translate * vec4(pos * scale, 0.0f, 1.0f);
-    gl_Position = vec4(worldPos.xy, 0.0f, 1.0f);
+    gl_Position = translate * vec4(pos * scale, 0.0f, 1.0f);
 }
