@@ -105,10 +105,11 @@ void Simulation::RK4Step() {
 	for (unsigned int i{}; i < numPend; i++) {
 
 		pendNum[i].setPrevPos(pendNum[i].getPos());
-		pendNum[i].setPos(pendNum[i].polarToCartVert());
-
 		if (i)
 			pendNum[i].setPivot(pendNum[i - 1].getPos());
+
+		pendNum[i].setPos(pendNum[i].polarToCartVert());
+
 	}
 
 	// Cleanup

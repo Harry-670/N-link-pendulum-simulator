@@ -15,22 +15,22 @@ int main() {
 	Sim.setTimeStep(0.01f);
 
 	//number of pendulums
-	unsigned int n{ 2 };
+	unsigned int n{ 3 };
 
 	//pivot array
 	glm::vec3 pivot{ glm::vec3(0.0f,1.0f,0.0f)};
 
 	//length array
-	float* length{ new float[2] {0.5f, 0.4f} };
+	float* length{ new float[3] {0.5f,0.5f, 0.5f} };
 
 	//initial angle array
-	float* initAng{ new float[2] {1.0f, 0.5f} };
+	float* initAng{ new float[3] {1.0f, 0.5f, 0.2f} };
 
 	//initial angular velocity array
-	float* initAngVel{ new float[2] {0.1f, 0.0f} };
+	float* initAngVel{ new float[3] {0.1f, 0.0f, 0.2f} };
 
 	//nodes array
-	unsigned int* nodes{ new unsigned int[2] {10, 10} };
+	unsigned int* nodes{ new unsigned int[3] {10, 10, 10} };
 
 	//setup the pendulum, by adding the initial states
 	DataStore data{ Sim.setUpPend(n, pivot, length, initAng, initAngVel, nodes) };
@@ -52,7 +52,14 @@ int main() {
 	GLfloat prevTime{};
 
 	//create the translation matrices for the circles and lines
-	glm::mat4* Ctran{ new glm::mat4[n]{1.0f} }, *Ltran{ new glm::mat4[n]{1.0f} };
+	glm::mat4* Ctran = new glm::mat4[n];
+	glm::mat4* Ltran = new glm::mat4[n];
+
+	for (unsigned int i = 0; i < n; i++) {
+		Ctran[i] = glm::mat4(1.0f);
+		Ltran[i] = glm::mat4(1.0f);
+	}
+
 	int translation;
 
 	
