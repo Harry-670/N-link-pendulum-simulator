@@ -4,180 +4,156 @@
 
 #define M_PI 3.14159265f
 
-void Simulation::setUpPend(unsigned int n, float* pivot, float length, float* initAng, float* initAngVel, unsigned int* nodes) {
-    //fix pls
-    DataStore Data{};
-    pendNum = new Particle[n]{};
+// Simulation setup
+DataStore Simulation::setUpPend(unsigned int n, float* pivot, float* length, float* initAng, float* initAngVel, unsigned int* nodes) {
 
-    Data.genShapes(n);
- 
-    float prevPivot[2]{};
+	GLfloat screenX{ 800 }, screenY{ 800 };
+	DataStore Data{};
 
-    for (unsigned int i{1}; i < n; i++) {
+	GLFWwindow* window{ Data.glSetupWindow(screenX, screenY) };
+	pendNum = new Particle[n]{};
+	numPend = n;
+	Data.genShapes(n);
 
-        float* vertices;
+	glm::vec3 prevPivot{};
+	for (unsigned int i{}; i < n; i++) {
+		float* vertices;
 
-        pendNum[i].setAngVel(initAngVel[i]);
-        pendNum[i].setAngle(initAng[i]);
-        pendNum[i].setNodes(nodes[i]);
+		pendNum[i].setAngVel(initAngVel[i]);
+		pendNum[i].setAngle(initAng[i]);
+		pendNum[i].setNodes(nodes[i]);
+		pendNum[i].setLength(length[i]);
+		pendNum[i].setRadius(0.1f);
 
-        if(i>0)
-        pendNum[i].setPivot(prevPivot + pendNum[i].polarToCaretsianVert());
-        else
-            pendNum[i].setPivot(pivot[0], pivot[1]);
+		if (i > 0)
+			pendNum[i].setPivot(prevPivot + pendNum[i].polarToCartVert());
+		else
+			pendNum[i].setPivot(pivot[0], pivot[1]);
 
-        prevPivot = pendNum[i].getPivot();
-        pendNum[i].initCircle(vertices);
-        Data.addShape(vertices, (nodes[i] + 1) * 2);
-        delete[] vertices;
-
-    }
-
-    
-
-}
-
-void Simulation::RK4Step(unsigned int index) {
-    float dt = timeStep;
-
-    float** KVel { new float* [4] }, ** KAcc{ new float* [4] };
-
-    float *origAng{new float [numPend]}, * origAngVel{ new float[numPend] };
-
-	//fill original arrays with current state
-    for (int i{}; i < numPend; i++) {
-        origAng[i] = pendNum[i].getAngle();
-        origAngVel[i] = pendNum[i].getAngVel();
+		prevPivot = pendNum[i].getPivot();
+		pendNum[i].initCircle(vertices);
+		Data.addShape(vertices, (nodes[i] + 1) * 2);
+		delete[] vertices;
 	}
 
-    for (int i{} ; i < 4 ; i++){ 
-
-		KVel[i] = new float[numPend] {};
-		KAcc[i] = new float[numPend] {};
-
-
+	return Data;
 }
 
-    Eigen::VectorXd A{ calcAngAcc() };
+// Physics simulation step
+void Simulation::RK4Step() {
+	float dt = timeStep;
+	float** KVel{ new float* [4] }, ** KAcc{ new float* [4] };
+	float* origAng{ new float[numPend] }, * origAngVel{ new float[numPend] };
 
-    for (int i{}; i < numPend; i++) {
+	// Store original state
+	for (unsigned int i{}; i < numPend; i++) {
+		origAng[i] = pendNum[i].getAngle();
+		origAngVel[i] = pendNum[i].getAngVel();
+	}
 
-        KVel[0][i] = origAngVel[i];
-        KAcc[0][i] = A(i);
-        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[0][i]));
-        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[0][i]));
+	// Initialize K arrays
+	for (unsigned int i{}; i < 4; i++) {
+		KVel[i] = new float[numPend]{};
+		KAcc[i] = new float[numPend]{};
+	}
 
-    }
-    
-    A = calcAngAcc();
+	// RK4 step 1
+	Eigen::VectorXd A{ calcAngAcc() };
+	for (unsigned int i{}; i < numPend; i++) {
+		KVel[0][i] = origAngVel[i];
+		KAcc[0][i] = A(i);
+		pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[0][i]));
+		pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[0][i]));
+	}
 
-	
-    for (int i{}; i < numPend; i++) {
+	// RK4 step 2
+	A = calcAngAcc();
+	for (unsigned int i{}; i < numPend; i++) {
+		KVel[1][i] = pendNum[i].getAngVel();
+		KAcc[1][i] = A(i);
+		pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[1][i]));
+		pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[1][i]));
+	}
 
-        KVel[1][i] = pendNum[i].getAngVel();
-        KAcc[1][i] = A(i);
-        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[1][i]));
-        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[1][i]));
+	// RK4 step 3
+	A = calcAngAcc();
+	for (unsigned int i{}; i < numPend; i++) {
+		KVel[2][i] = pendNum[i].getAngVel();
+		KAcc[2][i] = A(i);
+		pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[2][i]));
+		pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[2][i]));
+	}
 
-    }
+	// RK4 step 4
+	A = calcAngAcc();
+	for (unsigned int i{}; i < numPend; i++) {
+		KVel[3][i] = pendNum[i].getAngVel();
+		KAcc[3][i] = A(i);
+	}
 
-    A = calcAngAcc();
+	// Apply weighted average and update
+	for (unsigned int i{}; i < numPend; i++) {
+		pendNum[i].setAngle(origAng[i] + (dt / 6.0f) * (KVel[0][i] + 2.0f * KVel[1][i] + 2.0f * KVel[2][i] + KVel[3][i]));
+		pendNum[i].setAngVel(origAngVel[i] + (dt / 6.0f) * (KAcc[0][i] + 2.0f * KAcc[1][i] + 2.0f * KAcc[2][i] + KAcc[3][i]));
+		pendNum[i].setAngPrev(origAng[i]);
+	}
 
-    for (int i{}; i < numPend; i++) {
+	// Update positions
+	for (unsigned int i{}; i < numPend; i++) {
+		pendNum[i].setPrevPos(pendNum[i].getPos());
+		pendNum[i].setPos(pendNum[i].polarToCartVert());
+	}
 
-        KVel[2][i] = pendNum[i].getAngVel();
-        KAcc[2][i] = A(i);
-        pendNum[i].setAngle(origAng[i] + (0.5f * dt * KVel[2][i]));
-        pendNum[i].setAngVel(origAngVel[i] + (0.5f * dt * KAcc[2][i]));
-
-    }
-
-    A = calcAngAcc();
-
-    for (int i{}; i < numPend; i++) {
-
-        KVel[3][i] = pendNum[i].getAngVel();
-        KAcc[3][i] = A(i);
-
-    }
-
-    //fill the orginals back up and fill prev ang
-        // --- Final Update: Weighted average for BOTH position and velocity ---
-    for (int i{}; i < numPend; i++) {
-
-        pendNum[i].setAngle(origAng[i]+ (dt / 6.0f) * (KVel[0][i] + 2.0f * KVel[1][i] + 2.0f * KVel[2][i] + KVel[3][i]));
-        pendNum[i].setAngVel(origAngVel[i] + (dt / 6.0f) * (KAcc[0][i] + 2.0f * KAcc[1][i] + 2.0f * KAcc[2][i] + KAcc[3][i]));
-        pendNum[i].prevAng(origAng[i]);
-    }
-
-    // --- Final Update: Weighted average for BOTH position and velocity ---
-
-
-    // Update visuals
-    for (unsigned int i{}; i < numPend; i++) {
-
-    pendNum[i].setPrevPos() = pendNum[i].getPos();
-    pendNum[i].setPos() = pendNum[i].polarToCartVert();
-    
-
-    }
-
+	// Cleanup
+	for (unsigned int i{}; i < 4; i++) {
+		delete[] KVel[i];
+		delete[] KAcc[i];
+	}
+	delete[] KVel;
+	delete[] KAcc;
+	delete[] origAng;
+	delete[] origAngVel;
 }
 
-
-
-
-glm::vec3 const Particle::polarToCartVert() {
-
-    return glm::vec3(length * std::sin(angle) + pivot.x, -length * std::cos(angle) + pivot.y, 0.0f);
-
-
-}
+// Angular acceleration calculation
 Eigen::VectorXd Simulation::calcAngAcc() {
+	Eigen::MatrixXd M(numPend, numPend);
+	Eigen::VectorXd B(numPend);
 
-    Eigen::MatrixXd M(numPend,numPend);
-    Eigen::VectorXd B(numPend);
+	for (unsigned int i{}; i < numPend; i++) {
+		B(i) = -grav * static_cast<float>(numPend - i + 1) * std::sin(pendNum[i].getAngVel());
+		for (unsigned int j{}; j < numPend; j++) {
+			M(i, j) = static_cast<float>(numPend - std::max(i, j) + 1) * std::cos(pendNum[i].getAngVel() - pendNum[j].getAngVel());
+			B(i) -= static_cast<float>(numPend - std::max(i, j) + 1) * std::pow(pendNum[j].getAngVel(), 2.0f) * std::sin(pendNum[i].getAngVel() - pendNum[j].getAngVel());
+		}
+	}
 
-    for (int i{}; i < numPend; i++) {
-        B(i) = -grav * (numPend - i + 1) * std::sin(pendNum[i].getAngVel());
-        for (int j{}; j < numPend; j++ ) {
-
-            M(i, j) = (numPend - std::max(i, j) + 1) * std::cos(pendNum[i].getAngVel() - pendNum[j].getAngVel());
-            B(i) -= (numPend - std::max(i, j) + 1)* std::pow(pendNum[j].getAngVel(),2)* std::sin(pendNum[i].getAngVel() - pendNum[j].getAngVel());
-
-        }
-
-    }
-
-    return M.lu().solve(B);
-
+	return M.lu().solve(B);
 }
-// --- Utility ---
 
-unsigned int Particle::initCircle(float* &vertices ) {
-    if (nodes < 3) {
-        std::cerr << "Too few nodes to draw a circle" << std::endl;
-    }
-    vertices = new float[2 * (nodes + 2)];
-    unsigned int size{};
+// Particle geometry
+glm::vec3 const Particle::polarToCartVert() {
+	return glm::vec3(length * std::sin(angle) + pivot.x, -length * std::cos(angle) + pivot.y, 0.0f);
+}
 
-    // Center of the circle is exactly at the origin (0, 0)
-    vertices[0] = 0.0f;
-    vertices[1] = 0.0f;
-    size++;
-    float angle_offset = 0.0f;
-    for (unsigned int i = 2; i < (nodes + 2) * 2; i += 2) {
-        if (i >= (nodes + 1) * 2) {
-            vertices[(nodes + 1) * 2] = vertices[2];
-            vertices[(nodes + 1) * 2 + 1] = vertices[3];
-        }
-        else {
-            // Draw relative to origin, scaling by radius
-            vertices[i] = radius * std::cos(angle_offset);
-            vertices[i + 1] = radius * std::sin(angle_offset);
-            angle_offset += 2.0f * M_PI / nodes;
-        }
-        size++;
-    }
-    return size;
+unsigned int Particle::initCircle(float*& vertices) {
+	if (nodes < 3) {
+		std::cerr << "Too few nodes to draw a circle" << std::endl;
+	}
+	vertices = new float[2 * (nodes + 2)];
+
+	// Center vertex
+	vertices[0] = 0.0f;
+	vertices[1] = 0.0f;
+
+	// Circle perimeter vertices
+	float angle_offset = 0.0f;
+	for (unsigned int i = 0; i <= nodes; i++) {
+		vertices[2 * (i + 1)] = radius * std::cos(angle_offset);
+		vertices[2 * (i + 1) + 1] = radius * std::sin(angle_offset);
+		angle_offset += 2.0f * M_PI / static_cast<float>(nodes);
+	}
+
+	// Return the number of vertices to draw (center + perimeter + closing vertex)
+	return nodes + 2;
 }
