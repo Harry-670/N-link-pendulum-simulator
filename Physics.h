@@ -9,7 +9,7 @@
 #include <algorithm>
 #include "glSetup.h"
 
-#define grav 1.0f
+#define grav 5.0f
 
 class Particle;
 

@@ -94,7 +94,7 @@ unsigned int initShaders() {
 	return shaderProgram;
 }
 
-unsigned int DataStore::addShape(float* &shape, unsigned int size) {
+unsigned int DataStore::addShape(float* shape, unsigned int size) {
 	BOArrays[index] = new float[size * 2];
 
 	for (unsigned int i{}; i < size * 2; i++) {
@@ -112,7 +112,6 @@ unsigned int DataStore::addShape(float* &shape, unsigned int size) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	delete[] shape;
-	shape = nullptr;
 
 	index++;
 	return index - 1;

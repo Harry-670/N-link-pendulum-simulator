@@ -10,27 +10,27 @@
 #include "glSetup.h"
 
 int main() {
-    Simulation Sim{};
+	Simulation Sim{};
 	// Set simulation timestep (seconds)
 	Sim.setTimeStep(0.01f);
 
 	//number of pendulums
 	unsigned int n{ 3 };
 
-	//pivot array
-	glm::vec3 pivot{ glm::vec3(0.0f,1.0f,0.0f)};
+	//pivot (anchor point for first pendulum)
+	glm::vec3 pivot{ glm::vec3(0.0f, 1.0f, 0.0f)};
 
 	//length array
-	float* length{ new float[3] {0.5f,0.5f, 0.5f} };
+	float* length{ new float[n] {0.5f, 0.4f, 0.6f} };
 
 	//initial angle array
-	float* initAng{ new float[3] {1.0f, 0.5f, 0.2f} };
+	float* initAng{ new float[n] {1.0f, 0.5f, 0.3f} };
 
 	//initial angular velocity array
-	float* initAngVel{ new float[3] {0.1f, 0.0f, 0.2f} };
+	float* initAngVel{ new float[n] {0.1f, 0.0f, 5.0f} };
 
 	//nodes array
-	unsigned int* nodes{ new unsigned int[3] {10, 10, 10} };
+	unsigned int* nodes{ new unsigned int[n] {10, 10, 10} };
 
 	//setup the pendulum, by adding the initial states
 	DataStore data{ Sim.setUpPend(n, pivot, length, initAng, initAngVel, nodes) };
@@ -51,18 +51,21 @@ int main() {
 	GLFWwindow* window{ data.getWindow() };
 	GLfloat prevTime{};
 
-	//create the translation matrices for the circles and lines
+	// create the translation matrices for the circles and lines
 	glm::mat4* Ctran = new glm::mat4[n];
 	glm::mat4* Ltran = new glm::mat4[n];
 
+	// Setup the initial transformations BEFORE the loop starts
 	for (unsigned int i = 0; i < n; i++) {
-		Ctran[i] = glm::mat4(1.0f);
-		Ltran[i] = glm::mat4(1.0f);
+		Ctran[i] = glm::translate(glm::mat4(1.0f), Sim.getPendNum()[i].getPos());
+
+		Ltran[i] = glm::translate(glm::mat4(1.0f), Sim.getPendNum()[i].getPivot());
+		Ltran[i] = glm::rotate(Ltran[i], Sim.getPendNum()[i].getAngle(), glm::vec3(0.0, 0.0, 1.0));
 	}
 
 	int translation;
 
-	
+
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glUseProgram(shaderProgram);
@@ -70,26 +73,34 @@ int main() {
 
 		translation = glGetUniformLocation(shaderProgram, "translate");
 
+		// Draw all circles first
 		for (unsigned int i{}; i < n; i++) {
 			glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ctran[i]));
-			glBindVertexArray(VAO[i]);
+			glBindVertexArray(VAO[i*2]);
 			glDrawArrays(GL_TRIANGLE_FAN, 0, Sim.getPendNum()[i].getCircleVertices());
+		}
 
-
+		// Draw all lines on top
+		for (unsigned int i{}; i < n; i++) {
 			glUniformMatrix4fv(translation, 1, GL_FALSE, glm::value_ptr(Ltran[i]));
-			glBindVertexArray(VAO[i]);
-			glDrawArrays(GL_LINES, 0, Sim.getPendNum()[i].getLineVertices());
+			glBindVertexArray(VAO[i*2+1]);
+			glDrawArrays(GL_LINES, 0, 2);
 		}
 
 		if (glfwGetTime() - prevTime > 0.01f) {
 			Sim.RK4Step();
 
-			//fill the matrices with the new translated matrices
+			//update the transformation matrices based on new positions
 			for (unsigned int i{}; i < n; i++) {
-				Ctran[i] = glm::translate(Ctran[i], Sim.getPendNum()[i].getPos() - Sim.getPendNum()[i].getPrevPos());
-				Ltran[i] = glm::rotate(Ltran[i], Sim.getPendNum()[i].getAngle() - Sim.getPendNum()[i].getAngPrev(), glm::vec3(0.0, 0.0, 1.0));
-				prevTime = glfwGetTime();
+				Ctran[i] = glm::mat4(1.0f);
+				Ctran[i] = glm::translate(Ctran[i], Sim.getPendNum()[i].getPos());
+
+				Ltran[i] = glm::mat4(1.0f);
+				Ltran[i] = glm::translate(Ltran[i], Sim.getPendNum()[i].getPivot());
+				Ltran[i] = glm::rotate(Ltran[i], Sim.getPendNum()[i].getAngle(), glm::vec3(0.0, 0.0, 1.0));
 			}
+			// Moved OUTSIDE the for loop
+			prevTime = glfwGetTime();
 		}
 
 		glfwSwapBuffers(window);

@@ -37,7 +37,7 @@ public:
 	//generates the VAO and the VBOs for each shape
 	void genShapes(unsigned int n);
 	//adds the added shape to the corresponding VBO and VAO, then it returns the index that it is stored in BOArrays
-	unsigned int addShape(float*& shape, unsigned int size);
+	unsigned int addShape(float* shape, unsigned int size);
 	//cleans up memory, deletes, VAOs, VBOs, BOArrays, destroys window, and terminates GLFW
 	void glClean();
 };

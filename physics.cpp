@@ -13,7 +13,7 @@ DataStore Simulation::setUpPend(unsigned int n, glm::vec3 pivot, float* length, 
 	GLFWwindow* window{ Data.glSetupWindow(screenX, screenY) };
 	pendNum = new Particle[n]{};
 	numPend = n;
-	Data.genShapes(n);
+	Data.genShapes(n*2);
 
     // Track the previous particle's position (start at the anchor pivot)
 	glm::vec3 prevPos = pivot;
@@ -26,7 +26,7 @@ DataStore Simulation::setUpPend(unsigned int n, glm::vec3 pivot, float* length, 
 		pendNum[i].setLength(length[i]);
 		pendNum[i].setRadius(0.1f);
 
-        // Set this particle's pivot to the previous particle's absolute position
+		// Set this particle's pivot to the previous particle's absolute position
 		pendNum[i].setPivot(prevPos);
 
 		// Compute absolute position from pivot + polar offset
@@ -37,6 +37,9 @@ DataStore Simulation::setUpPend(unsigned int n, glm::vec3 pivot, float* length, 
 		pendNum[i].initCircle(vertices);
 		Data.addShape(vertices, nodes[i] + 2);
 
+		// Create line from pivot to bob (0,0) to (0,length)
+		float* lineVertices{ new float[4] {0.0f, 0.0f, 0.0f, -length[i]} };
+		Data.addShape(lineVertices, 2);
 	}
 
 	return Data;
@@ -129,26 +132,29 @@ Eigen::VectorXd Simulation::calcAngAcc() {
 	Eigen::VectorXd B(numPend);
 
 	for (unsigned int i = 0; i < numPend; i++) {
-		// Correctly parenthesized gravity term using 0-based indexing
-		B(i) = -grav * (numPend - i) * std::sin(pendNum[i].getAngle());
+		float Li = pendNum[i].getLength();
+		float theta_i = pendNum[i].getAngle();
+
+		// Gravity term: -g * L_i * (number of masses below) * sin(theta_i)
+		// Note: (numPend - i) represents the "effective mass factor"
+		B(i) = -grav * Li * (numPend - i) * std::sin(theta_i);
 
 		for (unsigned int j = 0; j < numPend; j++) {
-			// The effective mass term shared by M and the Coriolis/Centrifugal force
+			float Lj = pendNum[j].getLength();
+			float theta_j = pendNum[j].getAngle();
+			float omega_j = pendNum[j].getAngVel();
+
 			double massFactor = numPend - std::max(i, j);
+			double deltaTheta = theta_i - theta_j;
 
-			// Difference in angles
-			double deltaTheta = pendNum[i].getAngle() - pendNum[j].getAngle();
+			// Mass matrix scale: Li * Lj * massFactor
+			M(i, j) = massFactor * Li * Lj * std::cos(deltaTheta);
 
-			// Mass matrix M(i, j)
-			M(i, j) = massFactor * std::cos(deltaTheta);
-
-			// Coriolis / Centrifugal forces
-			B(i) -= massFactor * std::pow(pendNum[j].getAngVel(), 2.0) * std::sin(deltaTheta);
+			// Coriolis/Centrifugal scale: Li * Lj * massFactor * omega^2
+			B(i) -= massFactor * Li * Lj * std::pow(omega_j, 2.0) * std::sin(deltaTheta);
 		}
 	}
 
-	// Use LLT (Cholesky decomposition) because the Mass matrix is symmetric positive-definite.
-	// This is faster and more stable than LU decomposition for N-pendulums.
 	return M.llt().solve(B);
 }
 
@@ -163,18 +169,18 @@ unsigned int Particle::initCircle(float*& vertices) {
 	}
 	vertices = new float[2 * (nodes + 2)];
 
-	// Center vertex
-	vertices[0] = getPos().x;
-	vertices[1] = getPos().y;
+	// Center vertex should be at the local origin, NOT getPos()
+	vertices[0] = 0.0f;
+	vertices[1] = 0.0f;
 
 	// Circle perimeter vertices
 	float angle_offset = 0.0f;
 	for (unsigned int i = 0; i <= nodes; i++) {
-		vertices[2 * (i + 1)] = getPos().x + radius * std::cos(angle_offset);
-		vertices[2 * (i + 1) + 1] = getPos().y + radius * std::sin(angle_offset);
+		vertices[2 * (i + 1)] = radius * std::cos(angle_offset);
+		vertices[2 * (i + 1) + 1] = radius * std::sin(angle_offset);
 		angle_offset += 2.0f * M_PI / static_cast<float>(nodes);
 	}
 
-	// Return the number of vertices to draw (center + perimeter + closing vertex)
 	return nodes + 2;
+
 }
