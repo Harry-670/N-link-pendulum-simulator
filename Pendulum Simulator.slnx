@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="GLPrac.vcxproj" Id="f52c5853-1291-4493-8a13-452060fa814a" />
+</Solution>

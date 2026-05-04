@@ -1,0 +1,26 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.vcxproj
+# Build output
+build/
+bin/
+obj/
+x64/
+Win32/
+Debug/
+Release/
+
+# Intermediate / linker
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+*.tlog
+*.log
+*.aps
+*.opendb
+*.db
